@@ -1,0 +1,16 @@
+[
+    {
+        "title": "When Will We Meet",
+        "url": "https://cherryischilling.github.io/music-share/When_Will_We_Meet.mp3",
+        "artist": "Your Name",
+        "style": "Pop",
+        "source": "https://yourlink.com"
+    },
+    {
+        "title": "Another Song",
+        "url": "https://cherryischilling.github.io/music-share/Another_Song.mp3",
+        "artist": "Artist Name",
+        "style": "Rock",
+        "source": "https://anotherlink.com"
+    }
+]
