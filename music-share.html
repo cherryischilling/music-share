@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>地球小红人的 Music Player</title>
+    <title>地球小红人的Music Player</title>
     <style>
         body {
             display: flex;
@@ -32,6 +32,7 @@
             border: none;
             color: white;
             font-size: 1rem;
+            border-radius: 5px;
         }
         .song-info {
             margin-top: 20px;
@@ -50,7 +51,7 @@
 </head>
 <body>
     <div>
-        <h1>地球小红人的 Music Player</h1>
+        <h1>地球小红人的Music Player</h1>
         
         <!-- 音乐选择下拉框 -->
         <select id="music-selector" onchange="changeMusic()">
@@ -84,26 +85,30 @@
 
         // 初始化音乐播放器
         async function initMusicPlayer() {
-            const response = await fetch(musicDataUrl);
-            const musicData = await response.json();
+            try {
+                const response = await fetch(musicDataUrl);
+                const musicData = await response.json();
 
-            // 动态生成下拉选项
-            musicData.forEach((song, index) => {
-                const option = document.createElement("option");
-                option.value = index;
-                option.textContent = song.title;
-                option.dataset.url = song.url;
-                option.dataset.title = song.title;
-                option.dataset.artist = song.artist;
-                option.dataset.style = song.style;
-                option.dataset.source = song.source;
-                selector.appendChild(option);
-            });
+                // 动态生成下拉选项
+                musicData.forEach((song, index) => {
+                    const option = document.createElement("option");
+                    option.value = index;
+                    option.textContent = song.title;
+                    option.dataset.url = song.url;
+                    option.dataset.title = song.title;
+                    option.dataset.artist = song.artist;
+                    option.dataset.style = song.style;
+                    option.dataset.source = song.source;
+                    selector.appendChild(option);
+                });
 
-            // 默认加载第一首歌
-            if (musicData.length > 0) {
-                updateMusicInfo(musicData[0]);
-                audioPlayer.src = musicData[0].url;
+                // 默认加载第一首歌
+                if (musicData.length > 0) {
+                    updateMusicInfo(musicData[0]);
+                    audioPlayer.src = musicData[0].url;
+                }
+            } catch (error) {
+                console.error("加载音乐数据失败:", error);
             }
         }
 
@@ -119,6 +124,9 @@
                         audioPlayer.src = selectedSong.url;
                         audioPlayer.play();
                     }
+                })
+                .catch(error => {
+                    console.error("切换音乐时出错:", error);
                 });
         }
 
