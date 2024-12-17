@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Music Player</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #282c34;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        audio {
+            width: 90%;
+            max-width: 600px;
+            margin: 20px 0;
+        }
+        select {
+            margin-top: 20px;
+            padding: 5px;
+            background-color: #61dafb;
+            border: none;
+            color: white;
+            font-size: 1rem;
+        }
+        .song-info {
+            margin-top: 20px;
+            font-size: 1rem;
+            color: #b3b3b3;
+            text-align: center;
+        }
+        .song-info span {
+            display: block;
+        }
+        .song-info a {
+            color: #61dafb;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Dynamic Music Player</h1>
+        
+        <!-- 音乐选择下拉框 -->
+        <select id="music-selector" onchange="changeMusic()">
+            <!-- 动态加载选项 -->
+        </select>
+        
+        <!-- 音乐播放控制 -->
+        <audio id="audio-player" controls autoplay>
+            <source src="" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+
+        <!-- 音乐信息显示 -->
+        <div class="song-info" id="song-info">
+            <span><strong>Title:</strong> <span id="song-title"></span></span>
+            <span><strong>Artist:</strong> <span id="song-artist"></span></span>
+            <span><strong>Style:</strong> <span id="song-style"></span></span>
+            <span><strong>Source:</strong> <a id="song-source" href="#" target="_blank"></a></span>
+        </div>
+    </div>
+
+    <script>
+        // 加载音乐数据
+        const musicDataUrl = './music-data.json'; // JSON 文件路径
+        const selector = document.getElementById("music-selector");
+        const audioPlayer = document.getElementById("audio-player");
+        const songTitle = document.getElementById("song-title");
+        const songArtist = document.getElementById("song-artist");
+        const songStyle = document.getElementById("song-style");
+        const songSource = document.getElementById("song-source");
+
+        // 初始化音乐播放器
+        async function initMusicPlayer() {
+            const response = await fetch(musicDataUrl);
+            const musicData = await response.json();
+
+            // 动态生成下拉选项
+            musicData.forEach((song, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                option.textContent = song.title;
+                option.dataset.url = song.url;
+                option.dataset.title = song.title;
+                option.dataset.artist = song.artist;
+                option.dataset.style = song.style;
+                option.dataset.source = song.source;
+                selector.appendChild(option);
+            });
+
+            // 默认加载第一首歌
+            if (musicData.length > 0) {
+                updateMusicInfo(musicData[0]);
+                audioPlayer.src = musicData[0].url;
+            }
+        }
+
+        // 切换音乐
+        function changeMusic() {
+            const selectedIndex = selector.value;
+            fetch(musicDataUrl)
+                .then(response => response.json())
+                .then(musicData => {
+                    const selectedSong = musicData[selectedIndex];
+                    if (selectedSong) {
+                        updateMusicInfo(selectedSong);
+                        audioPlayer.src = selectedSong.url;
+                        audioPlayer.play();
+                    }
+                });
+        }
+
+        // 更新音乐信息
+        function updateMusicInfo(song) {
+            songTitle.innerText = song.title;
+            songArtist.innerText = song.artist;
+            songStyle.innerText = song.style;
+            songSource.href = song.source;
+            songSource.innerText = song.source;
+        }
+
+        // 初始化播放器
+        initMusicPlayer();
+    </script>
+</body>
+</html>
