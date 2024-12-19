@@ -20,16 +20,52 @@
             margin: 0;
             font-size: 2rem;
         }
-        audio {
+        .player-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             width: 90%;
             max-width: 600px;
+        }
+        audio {
+            width: 100%;
             margin: 20px 0;
         }
-        select {
-            margin-top: 20px;
-            padding: 5px;
-            background-color: #61dafb;
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .controls select, .mode-buttons {
+            display: flex;
+            align-items: center;
+        }
+        .mode-buttons {
+            gap: 15px;
+        }
+        .mode-buttons button {
+            background: none;
             border: none;
+            cursor: pointer;
+            color: white;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.3s;
+        }
+        .mode-buttons button.active {
+            color: #61dafb;
+        }
+        .mode-buttons button:hover {
+            color: #61dafb;
+        }
+        select {
+            padding: 5px;
+            background-color: #444;
+            border: 1px solid #777;
             color: white;
             font-size: 1rem;
             border-radius: 5px;
@@ -50,26 +86,29 @@
     </style>
 </head>
 <body>
-    <div>
+    <div class="player-container">
         <h1>地球小红人的Music Player</h1>
         
-        <!-- 播放模式选择 -->
-        <select id="play-mode-selector">
-            <option value="loop">循环播放</option>
-            <option value="single">单曲循环</option>
-            <option value="random">随机播放</option>
-        </select>
-
-        <!-- 音乐选择下拉框 -->
-        <select id="music-selector" onchange="changeMusic()">
-            <!-- 动态加载选项 -->
-        </select>
-        
-        <!-- 音乐播放控制 -->
+        <!-- 音乐播放器 -->
         <audio id="audio-player" controls autoplay>
             <source src="" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
+
+        <!-- 控制区 -->
+        <div class="controls">
+            <!-- 音乐选择下拉框 -->
+            <select id="music-selector" onchange="changeMusic()">
+                <!-- 动态加载选项 -->
+            </select>
+
+            <!-- 播放模式按钮 -->
+            <div class="mode-buttons">
+                <button id="loop-btn" class="active" onclick="setPlayMode('loop')">🔁</button>
+                <button id="single-btn" onclick="setPlayMode('single')">🔂</button>
+                <button id="random-btn" onclick="setPlayMode('random')">🔀</button>
+            </div>
+        </div>
 
         <!-- 音乐信息显示 -->
         <div class="song-info" id="song-info">
@@ -84,13 +123,17 @@
         const musicDataUrl = './music-data.json'; // JSON 文件路径
         const selector = document.getElementById("music-selector");
         const audioPlayer = document.getElementById("audio-player");
-        const playModeSelector = document.getElementById("play-mode-selector");
+        const loopBtn = document.getElementById("loop-btn");
+        const singleBtn = document.getElementById("single-btn");
+        const randomBtn = document.getElementById("random-btn");
         const songTitle = document.getElementById("song-title");
         const songArtist = document.getElementById("song-artist");
         const songStyle = document.getElementById("song-style");
         const songSource = document.getElementById("song-source");
+
         let musicData = [];
         let currentIndex = 0;
+        let playMode = "loop"; // 默认播放模式
 
         // 初始化音乐播放器
         async function initMusicPlayer() {
@@ -134,17 +177,24 @@
             songSource.innerText = song.source;
         }
 
-        // 处理播放结束事件
+        // 设置播放模式
+        function setPlayMode(mode) {
+            playMode = mode;
+            loopBtn.classList.remove("active");
+            singleBtn.classList.remove("active");
+            randomBtn.classList.remove("active");
+            if (mode === "loop") loopBtn.classList.add("active");
+            if (mode === "single") singleBtn.classList.add("active");
+            if (mode === "random") randomBtn.classList.add("active");
+        }
+
+        // 播放结束事件
         audioPlayer.addEventListener("ended", () => {
-            const mode = playModeSelector.value;
-            if (mode === "loop") {
-                // 循环播放
+            if (playMode === "loop") {
                 currentIndex = (currentIndex + 1) % musicData.length;
-            } else if (mode === "single") {
-                // 单曲循环
+            } else if (playMode === "single") {
                 // currentIndex 不变，重新播放当前曲目
-            } else if (mode === "random") {
-                // 随机播放
+            } else if (playMode === "random") {
                 currentIndex = Math.floor(Math.random() * musicData.length);
             }
             updateMusicInfo(musicData[currentIndex]);
