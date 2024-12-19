@@ -20,42 +20,19 @@
             margin: 0;
             font-size: 2rem;
         }
-        .player-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        audio {
             width: 90%;
             max-width: 600px;
-        }
-        audio {
-            width: 100%;
             margin: 20px 0;
         }
-        .controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            margin-top: 10px;
-        }
         select {
-            padding: 10px;
-            background-color: #444;
-            border: 1px solid #777;
+            margin-top: 20px;
+            padding: 5px;
+            background-color: #61dafb;
+            border: none;
             color: white;
             font-size: 1rem;
             border-radius: 5px;
-            margin: 10px 0;
-        }
-        select.play-mode {
-            background-color: #858585;
-            color: black;
-            border-color: #858585;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        select.play-mode:focus {
-            background-color: #80ff8d;
-            color: white;
         }
         .song-info {
             margin-top: 20px;
@@ -73,29 +50,19 @@
     </style>
 </head>
 <body>
-    <div class="player-container">
+    <div>
         <h1>地球小红人的Music Player</h1>
         
-        <!-- 音乐播放器 -->
+        <!-- 音乐选择下拉框 -->
+        <select id="music-selector" onchange="changeMusic()">
+            <!-- 动态加载选项 -->
+        </select>
+        
+        <!-- 音乐播放控制 -->
         <audio id="audio-player" controls autoplay>
             <source src="" type="audio/mpeg">
             Your browser does not support the audio element.
         </audio>
-
-        <!-- 控制区 -->
-        <div class="controls">
-            <!-- 播放模式选择 -->
-            <select id="play-mode-selector" class="play-mode">
-                <option value="loop">🔁 循环播放</option>
-                <option value="single">🔂 单曲循环</option>
-                <option value="random">🔀 随机播放</option>
-            </select>
-
-            <!-- 音乐选择下拉框 -->
-            <select id="music-selector">
-                <!-- 动态加载选项 -->
-            </select>
-        </div>
 
         <!-- 音乐信息显示 -->
         <div class="song-info" id="song-info">
@@ -107,37 +74,38 @@
     </div>
 
     <script>
+        // 加载音乐数据
         const musicDataUrl = './music-data.json'; // JSON 文件路径
         const selector = document.getElementById("music-selector");
-        const playModeSelector = document.getElementById("play-mode-selector");
         const audioPlayer = document.getElementById("audio-player");
         const songTitle = document.getElementById("song-title");
         const songArtist = document.getElementById("song-artist");
         const songStyle = document.getElementById("song-style");
         const songSource = document.getElementById("song-source");
 
-        let musicData = [];
-        let currentIndex = 0;
-
         // 初始化音乐播放器
         async function initMusicPlayer() {
             try {
                 const response = await fetch(musicDataUrl);
-                musicData = await response.json();
+                const musicData = await response.json();
 
                 // 动态生成下拉选项
                 musicData.forEach((song, index) => {
                     const option = document.createElement("option");
                     option.value = index;
                     option.textContent = song.title;
+                    option.dataset.url = song.url;
+                    option.dataset.title = song.title;
+                    option.dataset.artist = song.artist;
+                    option.dataset.style = song.style;
+                    option.dataset.source = song.source;
                     selector.appendChild(option);
                 });
 
                 // 默认加载第一首歌
                 if (musicData.length > 0) {
-                    currentIndex = 0;
-                    updateMusicInfo(musicData[currentIndex]);
-                    audioPlayer.src = musicData[currentIndex].url;
+                    updateMusicInfo(musicData[0]);
+                    audioPlayer.src = musicData[0].url;
                 }
             } catch (error) {
                 console.error("加载音乐数据失败:", error);
@@ -146,10 +114,20 @@
 
         // 切换音乐
         function changeMusic() {
-            currentIndex = parseInt(selector.value);
-            updateMusicInfo(musicData[currentIndex]);
-            audioPlayer.src = musicData[currentIndex].url;
-            audioPlayer.play();
+            const selectedIndex = selector.value;
+            fetch(musicDataUrl)
+                .then(response => response.json())
+                .then(musicData => {
+                    const selectedSong = musicData[selectedIndex];
+                    if (selectedSong) {
+                        updateMusicInfo(selectedSong);
+                        audioPlayer.src = selectedSong.url;
+                        audioPlayer.play();
+                    }
+                })
+                .catch(error => {
+                    console.error("切换音乐时出错:", error);
+                });
         }
 
         // 更新音乐信息
@@ -160,23 +138,6 @@
             songSource.href = song.source;
             songSource.innerText = song.source;
         }
-
-        // 播放结束事件
-        audioPlayer.addEventListener("ended", () => {
-            const mode = playModeSelector.value;
-            if (mode === "loop") {
-                // 循环播放
-                currentIndex = (currentIndex + 1) % musicData.length;
-            } else if (mode === "single") {
-                // 单曲循环，currentIndex 不变
-            } else if (mode === "random") {
-                // 随机播放
-                currentIndex = Math.floor(Math.random() * musicData.length);
-            }
-            updateMusicInfo(musicData[currentIndex]);
-            audioPlayer.src = musicData[currentIndex].url;
-            audioPlayer.play();
-        });
 
         // 初始化播放器
         initMusicPlayer();
